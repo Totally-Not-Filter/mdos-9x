@@ -149,12 +149,12 @@ whitescreen:
 	move.w	#$8C00+%10000001,(a0)
 	move.w	#$8F00+%00000010,(a0)
 	lea	(VdpData).l,a0
-	move.l	#CRAM_ADDR_CMD,VdpCtrl-VdpData(a0)
+	move.l	#CRAM_ADDR_CMD,4(a0)
 	move.l	#$0EEE0EEE,d0
 	moveq	#(CRAM_SIZE/4)-1,d1
 	
 @loadwhite:
-	move.l	d0,(a0)+
+	move.l	d0,(a0)
 	dbf	d1,@loadwhite
 	
 @loop:

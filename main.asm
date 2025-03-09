@@ -143,13 +143,11 @@ gamemodeloop:
 	bra.s	gamemodeloop
 	
 whitescreen:
-	lea	(VdpCtrl).l,a0
-	move.w	#$8000+%00000100,(a0)
-	move.w	#$8100+%00010100,(a0)
-	move.w	#$8C00+%10000001,(a0)
-	move.w	#$8F00+%00000010,(a0)
 	lea	(VdpData).l,a0
-	move.l	#CRAM_ADDR_CMD,4(a0)
+	lea	VdpCtrl-VdpData(a0),a1
+	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
+	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
+	move.l	#CRAM_ADDR_CMD,(a1)
 	move.l	#$0EEE0EEE,d0
 	moveq	#(CRAM_SIZE/4)-1,d1
 	

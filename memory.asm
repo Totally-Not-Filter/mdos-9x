@@ -10,6 +10,7 @@ sram_end:	rs.b	0
 memory_start:	rs.b	0
 buffer:	rs.b	$8000
 gamemode:	rs.l	1
-	rs.b	$7FFC
+errortype:	rs.l	1
+	rs.b	$7FF8
 memory_end:	rs.b	0
 	rsreset

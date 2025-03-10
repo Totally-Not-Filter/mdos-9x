@@ -94,10 +94,6 @@ startprogram:
 	move.l	#"SEGA",(security_addr).l	; unlock Video Display Ports
 	
 TMSSLESS:
-	moveq	#0,d0
-	movea.l	d0,a0
-	movep.l	0(a0),d0
-	
 	; clear PSG
 	lea	(psg_input).l,a0
 	move.b	#$9F,(a0)
@@ -106,10 +102,10 @@ TMSSLESS:
 	move.b	#$FF,(a0)
 	
 	lea	(VdpData).l,a0
-	tst.w	VdpCtrl-VdpData(a0) ; test control port
+	lea	(VdpCtrl).l,a1
 	
 	; clear VRAM
-	move.l	#VRAM_ADDR_CMD,VdpCtrl-VdpData(a0)
+	move.l	#VRAM_ADDR_CMD,(a1)
 	moveq	#0,d0
 	move.w	#(VRAM_SIZE/4)-1,d1
 	
@@ -118,8 +114,7 @@ TMSSLESS:
 	dbf	d1,@clearvram
 	
 	; clear CRAM
-	move.l	#CRAM_ADDR_CMD,VdpCtrl-VdpData(a0)
-	moveq	#0,d0
+	move.l	#CRAM_ADDR_CMD,(a1)
 	moveq	#(CRAM_SIZE/4)-1,d1
 	
 @clearcram:
@@ -127,13 +122,30 @@ TMSSLESS:
 	dbf	d1,@clearcram
 	
 	; clear VSRAM
-	move.l	#VSRAM_ADDR_CMD,VdpCtrl-VdpData(a0)
-	moveq	#0,d0
+	move.l	#VSRAM_ADDR_CMD,(a1)
 	moveq	#(VSRAM_SIZE/4)-1,d1
 	
 @clearvsram:
 	move.l	d0,(a0)
 	dbf	d1,@clearvsram
+
+	; clear all registers (d0-a6)
+	; there's probably a way better way to do this but this is the best I've got for now
+	moveq	#0,d0
+	moveq	#0,d1
+	moveq	#0,d2
+	moveq	#0,d3
+	moveq	#0,d4
+	moveq	#0,d5
+	moveq	#0,d6
+	moveq	#0,d7
+	movea.l	d0,a0
+	movea.l	d0,a1
+	movea.l	d0,a2
+	movea.l	d0,a3
+	movea.l	d0,a4
+	movea.l	d0,a5
+	movea.l	d0,a6
 
 	move.l	#bluescreen,(gamemode).w
 
@@ -157,7 +169,7 @@ whitescreen:
 	
 @loop:
 	bra.s	@loop
-	
+
 bluescreen:
 	lea	(VdpData).l,a0
 	lea	VdpCtrl-VdpData(a0),a1

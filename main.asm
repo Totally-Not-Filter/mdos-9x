@@ -135,7 +135,7 @@ TMSSLESS:
 	move.l	d0,(a0)
 	dbf	d1,@clearvsram
 
-	move.l	#whitescreen,(gamemode).w
+	move.l	#bluescreen,(gamemode).w
 
 gamemodeloop:
 	movea.l	(gamemode).w,a0
@@ -148,12 +148,35 @@ whitescreen:
 	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
 	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
 	move.l	#CRAM_ADDR_CMD,(a1)
-	move.l	#$0EEE0EEE,d0
+	move.l	#$0EEE<<16|$0EEE,d0
 	moveq	#(CRAM_SIZE/4)-1,d1
 	
 @loadwhite:
 	move.l	d0,(a0)
 	dbf	d1,@loadwhite
+	
+@loop:
+	bra.s	@loop
+	
+bluescreen:
+	lea	(VdpData).l,a0
+	lea	VdpCtrl-VdpData(a0),a1
+	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
+	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
+	move.l	#CRAM_ADDR_CMD,(a1)
+	move.l	#$0A00<<16|$0EEE,(a0)
+	move.w	#$0AAA,(a0)
+	
+@loop:
+	bra.s	@loop
+	
+bootscreen:
+	lea	(VdpData).l,a0
+	lea	VdpCtrl-VdpData(a0),a1
+	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
+	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
+	move.l	#CRAM_ADDR_CMD,(a1)
+	move.l	#$0000<<16|$00E0,(a0)
 	
 @loop:
 	bra.s	@loop

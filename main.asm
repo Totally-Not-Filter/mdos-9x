@@ -73,12 +73,12 @@ vectortable:
 	dc.b	"MEGA DRIVE OPERATING SYSTEM 9X                  "
 	dc.b	"GM XXXXXXXX-XX"
 	dc.w	0
-	dc.b	"J6              "
+	dc.b	"J6MKCF          "
 	dc.l	0
 	dc.l	-1
 	dc.l	memory_start
 	dc.l	memory_end-1
-	dc.b	"R","A",$A0,$20
+	dc.b	"RA",$F8,$20
 	dc.l	sram_start
 	dc.l	sram_end
 	dc.b	"                                                    "
@@ -147,7 +147,7 @@ TMSSLESS:
 	movea.l	d0,a5
 	movea.l	d0,a6
 
-	move.l	#bluescreen,(gamemode).w
+	move.l	#bootscreen,(gamemode).w
 
 gamemodeloop:
 	movea.l	(gamemode).w,a0

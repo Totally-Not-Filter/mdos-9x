@@ -31,26 +31,26 @@ vectortable:
 	dc.l	errortrap
 	dc.l	errortrap
 	dc.l	errortrap
-	dc.l	0		; IRQ level 4 (horizontal retrace interrupt)
+	dc.l	0	; IRQ level 4 (horizontal retrace interrupt)
 	dc.l	errortrap
-	dc.l	0		; IRQ level 6 (vertical retrace interrupt)
+	dc.l	0	; IRQ level 6 (vertical retrace interrupt)
 	dc.l	errortrap
-	dc.l	errortrap		; TRAP #00 exception
-	dc.l	errortrap		; TRAP #01 exception
-	dc.l	errortrap		; TRAP #02 exception
-	dc.l	errortrap		; TRAP #03 exception
-	dc.l	errortrap		; TRAP #04 exception
-	dc.l	errortrap		; TRAP #05 exception
-	dc.l	errortrap		; TRAP #06 exception
-	dc.l	errortrap		; TRAP #07 exception
-	dc.l	errortrap		; TRAP #08 exception
-	dc.l	errortrap		; TRAP #09 exception
-	dc.l	errortrap		; TRAP #10 exception
-	dc.l	errortrap		; TRAP #11 exception
-	dc.l	errortrap		; TRAP #12 exception
-	dc.l	errortrap		; TRAP #13 exception
-	dc.l	errortrap		; TRAP #14 exception
-	dc.l	errortrap		; TRAP #15 exception
+	dc.l	errortrap	; TRAP #00 exception
+	dc.l	errortrap	; TRAP #01 exception
+	dc.l	errortrap	; TRAP #02 exception
+	dc.l	errortrap	; TRAP #03 exception
+	dc.l	errortrap	; TRAP #04 exception
+	dc.l	errortrap	; TRAP #05 exception
+	dc.l	errortrap	; TRAP #06 exception
+	dc.l	errortrap	; TRAP #07 exception
+	dc.l	errortrap	; TRAP #08 exception
+	dc.l	errortrap	; TRAP #09 exception
+	dc.l	errortrap	; TRAP #10 exception
+	dc.l	errortrap	; TRAP #11 exception
+	dc.l	errortrap	; TRAP #12 exception
+	dc.l	errortrap	; TRAP #13 exception
+	dc.l	errortrap	; TRAP #14 exception
+	dc.l	errortrap	; TRAP #15 exception
 	dc.l	errortrap
 	dc.l	errortrap
 	dc.l	errortrap
@@ -160,7 +160,7 @@ whitescreen:
 	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
 	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
 	move.l	#CRAM_ADDR_CMD,(a1)
-	move.l	#$0EEE<<16|$0EEE,d0
+	move.l	#$EEE<<16|$EEE,d0
 	moveq	#(CRAM_SIZE/4)-1,d1
 	
 @loadwhite:
@@ -176,8 +176,8 @@ bluescreen:
 	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
 	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
 	move.l	#CRAM_ADDR_CMD,(a1)
-	move.l	#$0A00<<16|$0EEE,(a0)
-	move.w	#$0AAA,(a0)
+	move.l	#$A00<<16|$EEE,(a0)
+	move.w	#$AAA,(a0)
 	
 @loop:
 	bra.s	@loop
@@ -188,7 +188,7 @@ bootscreen:
 	move.l	#($8000+%00000100)<<16|$8100+%00010100,(a1)
 	move.l	#($8C00+%10000001)<<16|$8F00+%00000010,(a1)
 	move.l	#CRAM_ADDR_CMD,(a1)
-	move.l	#$0000<<16|$00E0,(a0)
+	move.l	#$000<<16|$0E0,(a0)
 	
 @loop:
 	bra.s	@loop

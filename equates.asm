@@ -17,6 +17,11 @@ sram_port:		equ $A130F1
 
 security_addr:		equ $A14000
 
+plane_w:	equ $A000
+plane_a:	equ $C000
+plane_b:	equ $E000
+spritetable:	equ	$F800
+
 ; VDP addressses
 psg_input:		equ $C00011
 

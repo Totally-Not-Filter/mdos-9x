@@ -11,6 +11,10 @@ memory_start:	rs.b	0
 buffer:	rs.b	$8000
 gamemode:	rs.l	1
 errortype:	rs.l	1
-	rs.b	$7FF8
+count:		rs.w	1
+memory_stack:	rs.b	0
+vint_jmp:	rs.w	1
+vint_loc:	rs.l	1
+	rs.b	$7FF0
 memory_end:	rs.b	0
 	rsreset

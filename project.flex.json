@@ -1,0 +1,32 @@
+{
+    "Flex": 2,
+    "name": "",
+    "node": "f4baaddd-eaf9-4ed8-89ac-5027b861d77f",
+    "objects": [
+        {
+            "format": "Sonic 1.js",
+            "name": "8X8 ASCII TEXT",
+            "palettes": [
+                {
+                    "path": "art\\palette.bin",
+                    "length": 1
+                }
+            ],
+            "art": {
+                "path": "art\\ASCII.bin",
+                "compression": "Uncompressed",
+                "offset": 0
+            },
+            "mappings": {
+                "path": "art\\mappings.bin",
+                "label": ""
+            },
+            "dplcs": {
+                "enabled": false,
+                "path": "",
+                "label": ""
+            },
+            "uuid": "f4baaddd-eaf9-4ed8-89ac-5027b861d77f"
+        }
+    ]
+}

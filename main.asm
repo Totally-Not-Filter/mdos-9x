@@ -1,4 +1,10 @@
 
+; Set this to 1 to make the source compatible with asm68k
+asm68k equ 0
+
+; Set this to 1 to make the source compatible with vasm
+vasm equ 1
+
 	include	"memory.asm"
 	include	"equates.asm"
 	include	"macros.asm"
@@ -119,25 +125,25 @@ TMSSLESS:
 	moveq	#0,d0
 	move.w	#(VRAM_SIZE/4)-1,d1
 	
-@clearvram:
+.clearvram:
 	move.l	d0,(a0)
-	dbf	d1,@clearvram
+	dbf	d1,.clearvram
 	
 	; clear CRAM
 	move.l	#CRAM_ADDR_CMD,(a1)
 	moveq	#(CRAM_SIZE/4)-1,d1
 	
-@clearcram:
+.clearcram:
 	move.l	d0,(a0)
-	dbf	d1,@clearcram
+	dbf	d1,.clearcram
 	
 	; clear VSRAM
 	move.l	#VSRAM_ADDR_CMD,(a1)
 	moveq	#(VSRAM_SIZE/4)-1,d1
 	
-@clearvsram:
+.clearvsram:
 	move.l	d0,(a0)
-	dbf	d1,@clearvsram
+	dbf	d1,.clearvsram
 	
 	; low color mode is default
 	move.l	#($8000+%00000000)<<16|$8100+%01010100,(a1)
@@ -170,9 +176,9 @@ TMSSLESS:
 	moveq	#0,d0
 	move.w	#(memory_stack-memory_start)/4-1,d1
 	
-@clearmemory:
+.clearmemory:
 	move.l	d0,(a0)+
-	dbf	d1,@clearmemory
+	dbf	d1,.clearmemory
 	
 	move.w	#$4EF9,(vint_jmp).w
 	move.l	#vint1,(vint_loc).w
@@ -232,8 +238,8 @@ bluescreen:
 	move.w	#$4000+((plane_a+$604+$48)&$3FFF),(a0)
 	move.w	#$0026,(a1) ; .
 	
-@loop:
-	bra.s	@loop
+.loop:
+	bra.s	.loop
 	
 bootscreen:
 	lea	(VdpData).l,a0
@@ -270,10 +276,14 @@ bootscreen:
 	move.l	#$0013<<16|$0019,(a1) ; IO
 	move.l	#$0018<<16|$002C,(a1) ; N:
 	move.w	#$4000+((plane_a+$20C+$12)&$3FFF),(a0)
-	move.l	#$0001<<16|$0026,(a1) ; 0.
-	move.l	#$0001<<16|$0002,(a1) ; 01
+	move.l	#$001C<<16|$0001,(a1) ; R0
+	move.l	#$0001<<16|$0001,(a1) ; 00
+	move.l	#$0001<<16|$0001,(a1) ; 00
+	move.l	#$0001<<16|$0001,(a1) ; 00
 	if unreleasedver
-	move.w	#$0022,(a1) ; X
+	move.l	#$0002<<16|$0022,(a1) ; 1X
+	else
+	move.w	#$0002,(a1) ; 1
 	endif
 	move.w	#$4000+((plane_a+$30C)&$3FFF),(a0)
 	move.l	#$000D<<16|$0019,(a1) ; CO
@@ -290,6 +300,14 @@ bootscreen:
 	move.l	#$0017<<16|$0007,(a1) ; M6
 	move.l	#$0009<<16|$0015,(a1) ; 8K
 	endif
+	if vasm
+	move.l	#$0020<<16|$000B,(a1) ; VA
+	move.l	#$001D<<16|$0017,(a1) ; SM
+	move.w	#$4000+((plane_a+$30C+$28)&$3FFF),(a0)
+	move.l	#$001A<<16|$001D,(a1) ; PS
+	move.l	#$0013<<16|$0028,(a1) ; I-
+	move.w	#$0022,(a1) ; X
+	endif
 	move.w	#$4000+((plane_a+$40C)&$3FFF),(a0)
 	move.l	#$000E<<16|$000B,(a1) ; DA
 	move.l	#$001E<<16|$000F,(a1) ; TE
@@ -302,8 +320,8 @@ bootscreen:
 	move.l	#$0003<<16|$0001,(a1)
 	move.l	#$0003<<16|$0006,(a1)
 	
-@loop:
-	bra.s	@loop
+.loop:
+	bra.s	.loop
 	
 ASCIIArt:
 	incbin	"art\ASCII.kosp"

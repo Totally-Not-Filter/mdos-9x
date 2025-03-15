@@ -270,13 +270,10 @@ bootscreen:
 	move.l	#$0013<<16|$0019,(a1) ; IO
 	move.l	#$0018<<16|$002C,(a1) ; N:
 	move.w	#$4000+((plane_a+$20C+$12)&$3FFF),(a0)
+	move.l	#$0001<<16|$0026,(a1) ; 0.
+	move.l	#$0001<<16|$0002,(a1) ; 01
 	if unreleasedver
-	move.l	#$0001<<16|$0026,(a1) ; 0.
-	move.l	#$0001<<16|$0002,(a1) ; 01
 	move.w	#$0022,(a1) ; X
-	else
-	move.l	#$0001<<16|$0026,(a1) ; 0.
-	move.l	#$0001<<16|$0002,(a1) ; 01
 	endif
 	move.w	#$4000+((plane_a+$30C)&$3FFF),(a0)
 	move.l	#$000D<<16|$0019,(a1) ; CO

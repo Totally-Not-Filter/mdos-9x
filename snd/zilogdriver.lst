@@ -1,0 +1,62 @@
+Sections:
+00: "org0001:0" (0-3C)
+
+
+Source: "zilogdriver.asm"
+                        	     1: 
+                        	     2: start:
+00:0000 C33900          	     3: 	jp	updatesmps	; jump directly to updatesmps
+                        	     4: 
+                        	     5: 	align	8
+                        	     6: loc_8:
+00:0008 C9              	     7: 	ret
+                        	     8: 
+                        	     9: 	align	8
+                        	    10: loc_10:
+00:0010 C9              	    11: 	ret
+                        	    12: 
+                        	    13: 	align	8
+                        	    14: loc_18:
+00:0018 C9              	    15: 	ret
+                        	    16: 
+                        	    17: 	align	8
+                        	    18: loc_20:
+00:0020 C9              	    19: 	ret
+                        	    20: 
+                        	    21: 	align	8
+                        	    22: loc_28:
+00:0028 C9              	    23: 	ret
+                        	    24: 
+                        	    25: 	align	8
+                        	    26: loc_30:
+00:0030 C9              	    27: 	ret
+                        	    28: 
+                        	    29: 	align	8
+                        	    30: loc_38:
+00:0038 C9              	    31: 	ret
+                        	    32: 
+                        	    33: updatesmps:
+00:0039 C33900          	    34: 	jp	updatesmps
+
+
+Symbols by name:
+loc_10                           A:0010
+loc_18                           A:0018
+loc_20                           A:0020
+loc_28                           A:0028
+loc_30                           A:0030
+loc_38                           A:0038
+loc_8                            A:0008
+start                            A:0000
+updatesmps                       A:0039
+
+Symbols by value:
+0000 start
+0008 loc_8
+0010 loc_10
+0018 loc_18
+0020 loc_20
+0028 loc_28
+0030 loc_30
+0038 loc_38
+0039 updatesmps

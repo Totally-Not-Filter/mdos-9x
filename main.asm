@@ -13,7 +13,7 @@ vasm equ 1
 startupstandard	equ 0
 
 ; Set this to 1 to set the program as an unreleased dev version
-unreleasedver equ 1
+devversion equ 1
 
 vectortable:
 	dc.l	memory_stack
@@ -44,7 +44,7 @@ vectortable:
 	dc.l	errortrap
 	dc.l	errortrap
 	dc.l	errortrap
-	dc.l	0	; IRQ level 4 (horizontal retrace interrupt)
+	dc.l	hint_loc	; IRQ level 4 (horizontal retrace interrupt)
 	dc.l	errortrap
 	dc.l	vint_loc	; IRQ level 6 (vertical retrace interrupt)
 	dc.l	errortrap
@@ -182,6 +182,8 @@ TMSSLESS:
 	
 	move.w	#$4EF9,(vint_jmp).w
 	move.l	#vint1,(vint_loc).w
+	move.w	#$4EF9,(hint_jmp).w
+	move.l	#hint1,(hint_loc).w
 
 	move.l	#bootscreen,(gamemode).w
 
@@ -193,9 +195,14 @@ gamemodeloop:
 vint1:
 	rte
 	
+hint1:
+	rte
+	
 	include	"mdtool\KosinskiPlus.asm"
 	
-ASCIIArtSize:	equ $660 ; size of uncompressed ASCIIArt.
+ASCIIArtSize:	equ $740 ; size of uncompressed ASCIIArt.
+
+	include	"mdtool\ASCII2Plane.asm"
 
 bluescreen:
 	lea	(VdpData).l,a0
@@ -209,37 +216,53 @@ bluescreen:
 
 	VRAMwrite	buffer,ASCIIArtSize,$20
 	
-	lea	VdpData-VdpCtrl(a0),a1
-	move.l	#$40000000+(((plane_b+$51E)&$3FFF)<<16)+(((plane_b)&$C000)>>14),(a0)
-	move.l	#$0031<<16|$002D,(a1) ; M
-	move.l	#$002E<<16|$002F,(a1) ; DO
-	move.l	#$0030<<16|$0031,(a1) ; S
-	move.l	#$0032<<16|$0033,(a1) ; 9X
-	move.w	#$0031,(a1)
-	move.l	#$40000000+(((plane_a+$604)&$3FFF)<<16)+(((plane_a)&$C000)>>14),(a0)
-	move.l	#$000B<<16|$0018,(a1) ; AN
-	move.w	#$4000+((plane_a+$604+6)&$3FFF),(a0)
-	move.l	#$000F<<16|$001C,(a1) ; ER
-	move.l	#$001C<<16|$0019,(a1) ; RO
-	move.w	#$001C,(a1) ; R
-	move.w	#$4000+((plane_a+$604+$12)&$3FFF),(a0)
-	move.l	#$0012<<16|$000B,(a1) ; HA
-	move.w	#$001D,(a1) ; S
-	move.w	#$4000+((plane_a+$604+$1A)&$3FFF),(a0)
-	move.l	#$0019<<16|$000D,(a1) ; OC
-	move.l	#$000D<<16|$001F,(a1) ; CU
-	move.l	#$001C<<16|$001C,(a1) ; RR
-	move.l	#$000F<<16|$000E,(a1) ; ED
-	move.w	#$4000+((plane_a+$604+$2C)&$3FFF),(a0)
-	move.l	#$000B<<16|$001E,(a1) ; AT
-	move.w	#$4000+((plane_a+$604+$32)&$3FFF),(a0)
-	move.l	#$0001<<16|$0022,(a1) ; 0X
-	; here is where we soon get the error location
-	move.w	#$4000+((plane_a+$604+$48)&$3FFF),(a0)
-	move.w	#$0026,(a1) ; .
+	lea	BScreenASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$604)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(BScreenASCII_end-BScreenASCII)-1,d1
+	bsr.w	ASCIIToPlane
+	
+	lea	ErrorTypeASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$704)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(ErrorTypeASCII_end-ErrorTypeASCII)-1,d1
+	bsr.w	ASCIIToPlane
+	
+	moveq	#0,d0
+	move.b	(errortype).w,d0
+	add.b	ErrorTypeIndex(pc,d0.w),d3
+	
 	
 .loop:
 	bra.s	.loop
+	
+BScreenASCII:
+	dc.b	"AN ERROR HAS OCCURRED AT 0X"
+BScreenASCII_end:
+
+ErrorTypeASCII:
+	dc.b	"ERROR TYPE:"
+ErrorTypeASCII_end:
+
+ErrorTypeIndex:
+	dc.b	BusError-ErrorTypeIndex
+	dc.b	AddressError-ErrorTypeIndex
+	dc.b	IllegalError-ErrorTypeIndex
+	dc.b	DivideError-ErrorTypeIndex
+	dc.b	CHKError-ErrorTypeIndex
+	dc.b	TrapVError-ErrorTypeIndex
+	dc.b	PrivError-ErrorTypeIndex
+	dc.b	TraceError-ErrorTypeIndex
+	dc.b	Line1010Error-ErrorTypeIndex
+	dc.b	Line1111Error-ErrorTypeIndex
+BusError:	dc.b	"BUS"
+AddressError:	dc.b	"ADDRESS"
+IllegalError:	dc.b	"ILLEGAL"
+DivideError:	dc.b	"DIVIDE"
+CHKError:	dc.b	"CHK"
+TrapVError:	dc.b	"TRAPV"
+PrivError:	dc.b	"PRIV"
+TraceError:	dc.b	"TRACE"
+Line1010Error:	dc.b	"LINE1010"
+Line1111Error:	dc.b	"LINE1111"
 	
 bootscreen:
 	lea	(VdpData).l,a0
@@ -250,78 +273,61 @@ bootscreen:
 	lea	(buffer).l,a1
 	bsr.w	KosPlusDec
 
-	VRAMwrite	buffer,ASCIIArtSize-($1C+$20*6),$20
+	VRAMwrite	buffer,ASCIIArtSize,$20
 	
-	lea	VdpData-VdpCtrl(a0),a1
-	move.l	#$40000000+(((plane_a+$10C)&$3FFF)<<16)+(((plane_a)&$C000)>>14),(a0)
-	move.l	#$0017<<16|$000F,(a1) ; ME
-	move.l	#$0011<<16|$000B,(a1) ; GA
-	move.w	#$4000+((plane_a+$10C+$A)&$3FFF),(a0)
-	move.l	#$000E<<16|$001C,(a1) ; DR
-	move.l	#$0013<<16|$0020,(a1) ; IV
-	move.w	#$000F,(a1) ; E
-	move.w	#$4000+((plane_a+$10C+$16)&$3FFF),(a0)
-	move.l	#$0019<<16|$001A,(a1) ; OP
-	move.l	#$000F<<16|$001C,(a1) ; ER
-	move.l	#$000B<<16|$001E,(a1) ; AT
-	move.l	#$0013<<16|$0018,(a1) ; IN
-	move.w	#$0011,(a1) ; G
-	move.w	#$4000+((plane_a+$10C+$2A)&$3FFF),(a0)
-	move.l	#$001D<<16|$0023,(a1) ; SY
-	move.l	#$001D<<16|$001E,(a1) ; ST
-	move.l	#$000F<<16|$0017,(a1) ; EM
-	move.w	#$4000+((plane_a+$20C)&$3FFF),(a0)
-	move.l	#$0020<<16|$000F,(a1) ; VE
-	move.l	#$001C<<16|$001D,(a1) ; RS
-	move.l	#$0013<<16|$0019,(a1) ; IO
-	move.l	#$0018<<16|$002C,(a1) ; N:
-	move.w	#$4000+((plane_a+$20C+$12)&$3FFF),(a0)
-	move.l	#$001C<<16|$0001,(a1) ; R0
-	move.l	#$0001<<16|$0001,(a1) ; 00
-	move.l	#$0001<<16|$0001,(a1) ; 00
-	move.l	#$0001<<16|$0001,(a1) ; 00
-	if unreleasedver
-	move.l	#$0002<<16|$0022,(a1) ; 1X
-	else
-	move.w	#$0002,(a1) ; 1
-	endif
-	move.w	#$4000+((plane_a+$30C)&$3FFF),(a0)
-	move.l	#$000D<<16|$0019,(a1) ; CO
-	move.l	#$0017<<16|$001A,(a1) ; MP
-	move.l	#$0013<<16|$0016,(a1) ; IL
-	move.l	#$000F<<16|$000E,(a1) ; ED
-	move.w	#$4000+((plane_a+$30C+$12)&$3FFF),(a0)
-	move.l	#$0021<<16|$0013,(a1) ; WI
-	move.l	#$001E<<16|$0012,(a1) ; TH
-	move.w	#$002C,(a1) ; :
-	move.w	#$4000+((plane_a+$30C+$1E)&$3FFF),(a0)
-	if asm68k
-	move.l	#$000B<<16|$001D,(a1) ; AS
-	move.l	#$0017<<16|$0007,(a1) ; M6
-	move.l	#$0009<<16|$0015,(a1) ; 8K
-	endif
-	if vasm
-	move.l	#$0020<<16|$000B,(a1) ; VA
-	move.l	#$001D<<16|$0017,(a1) ; SM
-	move.w	#$4000+((plane_a+$30C+$28)&$3FFF),(a0)
-	move.l	#$001A<<16|$001D,(a1) ; PS
-	move.l	#$0013<<16|$0028,(a1) ; I-
-	move.w	#$0022,(a1) ; X
-	endif
-	move.w	#$4000+((plane_a+$40C)&$3FFF),(a0)
-	move.l	#$000E<<16|$000B,(a1) ; DA
-	move.l	#$001E<<16|$000F,(a1) ; TE
-	move.w	#$002C,(a1) ; :
-	move.w	#$4000+((plane_a+$40C+$C)&$3FFF),(a0)
-	; 03-15-2025
-	move.l	#$0001<<16|$0004,(a1)
-	move.l	#$0028<<16|$0002,(a1)
-	move.l	#$0006<<16|$0028,(a1)
-	move.l	#$0003<<16|$0001,(a1)
-	move.l	#$0003<<16|$0006,(a1)
+	lea	BOOTScreenTitleASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$10C)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(BOOTScreenTitleASCII_end-BOOTScreenTitleASCII)-1,d1
+	bsr.w	ASCIIToPlane
+	
+	lea	VersionNumASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$20C)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(VersionNumASCII_end-VersionNumASCII)-1,d1
+	bsr.w	ASCIIToPlane
+	
+	lea	VersionNumASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$20C)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(VersionNumASCII_end-VersionNumASCII)-1,d1
+	bsr.w	ASCIIToPlane
+	
+	lea	CompilerTypeASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$30C)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(CompilerTypeASCII_end-CompilerTypeASCII)-1,d1
+	bsr.w	ASCIIToPlane
+	
+	lea	DateOfCompileASCII(pc),a0
+	move.l	#$40000000+(((plane_a+$40C)&$3FFF)<<16)+(((plane_a)&$C000)>>14),d0
+	moveq	#(DateOfCompileASCII_end-DateOfCompileASCII)-1,d1
+	bsr.w	ASCIIToPlane
 	
 .loop:
 	bra.s	.loop
+	
+BOOTScreenTitleASCII:
+	dc.b	"MEGA DRIVE OPERATING SYSTEM"
+BOOTScreenTitleASCII_end:
+
+VersionNumASCII:
+	dc.b	"VERSION: R1"
+	if devversion
+	dc.b	"X"
+	endif
+VersionNumASCII_end:
+
+CompilerTypeASCII:
+	dc.b	"COMPILED WITH: "
+	if vasm
+	dc.b	"VASM PSI-X"
+	endif
+	if asm68k
+	dc.b	"ASM68K"
+	endif
+CompilerTypeASCII_end:
+
+DateOfCompileASCII:
+	dc.b	"DATE: "
+	dc.b	"\#_month/\#_day/\#_year \#_hours:\#_minutes:\#_seconds"
+DateOfCompileASCII_end:
 	
 ASCIIArt:
 	incbin	"art\ASCII.kosp"
